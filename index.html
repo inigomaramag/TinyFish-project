@@ -1052,7 +1052,7 @@
 
     // Cache management system
     const CACHE_PREFIX = 'shopscout_cache_';
-    const CACHE_EXPIRY_HOURS = 24;
+    const CACHE_EXPIRY_HOURS = Infinity; // Indefinite cache
 
     function generateCacheKey(query, region) {
       // Create a unique cache key from search query and region
@@ -1067,10 +1067,10 @@
           region: region,
           results: results,
           timestamp: Date.now(),
-          expiresAt: Date.now() + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000)
+          expiresAt: CACHE_EXPIRY_HOURS === Infinity ? Infinity : Date.now() + (CACHE_EXPIRY_HOURS * 60 * 60 * 1000)
         };
         localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-        console.log(`✓ Cached results for "${query}" in ${region}`);
+        console.log(`✓ Cached results for "${query}" in ${region} (indefinite)`);
       } catch (e) {
         console.warn('Failed to save to cache:', e);
         // Gracefully handle storage quota exceeded or other storage errors
@@ -1085,8 +1085,8 @@
         if (cached) {
           const cacheData = JSON.parse(cached);
           
-          // Check if cache is still valid
-          if (cacheData.expiresAt > Date.now()) {
+          // Check if cache is still valid (Infinity means never expires)
+          if (cacheData.expiresAt === Infinity || cacheData.expiresAt > Date.now()) {
             console.log(`✓ Using cached results for "${query}" in ${region}`);
             return {
               isCached: true,
